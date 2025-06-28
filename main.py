@@ -5,9 +5,9 @@ import requests
 import time
 import csv
 import json
-import time
 import os
 import asyncio
+import nest_asyncio
 from pyppeteer import launch
 from pyppeteer_stealth import stealth
 
@@ -51,6 +51,8 @@ async def scrape_data():
 
         for k in range(0, len(date_list)-1): # Loop through each data range in date_list
 
+            print(f"Scraping data for date range: {date_list[k]} to {date_list[k+1]}")
+
             time_split_list = []
 
             date_list_month = int(date_list[k][0])
@@ -87,8 +89,9 @@ async def scrape_data():
             while len(tables) < 2 and counter < 20.0: # If the table does not load in 20 seconds, skip this date range
                 await asyncio.sleep(0.25)  # Wait for the page to load more tables
                 tables = await page.querySelectorAll('table')
-                counter += 0.25
-                continue
+                # counter += 0.25
+            
+            print(f"table loaded")
 
             more_button = await page.querySelector('td[id="expand"]')
 
@@ -172,11 +175,10 @@ async def scrape_data():
             print(f"at the end of the loop, time_split_list: {time_split}")
 
 
-            break
 
      
             # Find and press the "Load More" button until all data is loaded
-        break
+        
     
     await browser.close()
     print("Returning player_dict from scrape_data")
@@ -196,7 +198,7 @@ def main():
 
 
     try:
-        loop = asyncio.get_event_loop()
+        '''loop = asyncio.get_event_loop()
         if loop.is_running():
             # If already running (e.g., IPython/Jupyter), use ensure_future
             task = asyncio.ensure_future(scrape_data())
@@ -205,8 +207,10 @@ def main():
             player_dict = player_dict_result[0]
         else:
             player_dict = loop.run_until_complete(scrape_data())
-            print(f"back2")
-        
+            print(f"back2")'''
+
+        nest_asyncio.apply()
+        player_dict = asyncio.run(scrape_data())
 
     except Exception as e:
         print(f"Error occurred: {e}")
@@ -220,12 +224,13 @@ def main():
     
     # Now we have a dictionary of players and their data, we can save it to a CSV file or process it further.
     # Save the player_dict to a CSV file
-    '''with open('player_data.csv', 'w', newline='') as csvfile:
+    with open('player_data.csv', 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile)
-        csvwriter.writerow(['Player', 'Height', 'Weight', 'Position', 'Team', 'Final Height'])
-        for player_data in time_split_list:
-            csvwriter.writerow(player_data)
-    print("Player data saved to player_data.csv")'''
+        csvwriter.writerow(['Player', 'Stats'])
+        for player_data in player_dict:
+            csvwriter.writerow([player_data, player_dict[player_data]])
+    csvfile.close()
+    print("Player data saved to player_data.csv")
 
     
     return
