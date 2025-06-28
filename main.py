@@ -20,6 +20,8 @@ from pyppeteer_stealth import stealth
 
 async def scrape_data():
 
+    player_dict = {}  # Dictionary to hold player data
+
     # Plan to scrape data from the website barttorvik.com for college basketball players.
     # 1. Load website
     # 2. Press the "Load More" button to load all player data.
@@ -58,12 +60,23 @@ async def scrape_data():
             full_start_date = f"{i}{date_list[k]}"
             full_end_date = f"{i}{date_list[k+1]}"
 
+            year_1 = i if date_list[k][0] == "1" else i+1  
+            year_2 = url_year if date_list[k][:2] == "12" and date_list[k+1][:2] == "01" else year_1  # If the date range is from December to January, increment the year by 1
+            time_split = f"{year_1}{date_list[k]}-{year_2}{date_list[k+1]}"
+
             # first date = https://barttorvik.com/playerstat.php?link=y&minGP=1&year=2009&start=20081101&end=20081114
             url = f"https://barttorvik.com/playerstat.php?link=y&minGP=1&year={url_year}&start={full_start_date}&end={full_end_date}"
 
 
 
-            await page.goto(url)
+            try:
+                await page.goto(url, timeout=20000)
+            except Exception as e:
+                print(f"Failed to load URL: {url} — {e}")
+                continue
+
+            # await page.goto(url)
+            
             await page.waitForSelector('table')
             
             await page.querySelector('[style="white-space:nowrap;margin:auto;table-layout:fixed;"]')
@@ -92,7 +105,11 @@ async def scrape_data():
 
             hidden_table = tables[1]
 
-            table_text = await page.evaluate('(el) => el.innerText', hidden_table)
+            try:
+                table_text = await page.evaluate('(el) => el.innerText', hidden_table)
+            except Exception as e:
+                print(f"Failed to evaluate hidden_table: {e}")
+                continue
             table_list = table_text.split('\n')
 
             time_split_list = []
@@ -111,7 +128,7 @@ async def scrape_data():
             # FIND WAY TO DELETE LAST TWO ROWS OF THE TABLE IF THE ARE THE BUTTON ROWS
 
 
-            for row in table_list:
+            for row in table_list:  # Iterate through each row in the table
 
                 if len(row) < 6:  # Skip rows that are too short
                     continue
@@ -134,23 +151,36 @@ async def scrape_data():
                 # print(f"final_player_height: {final_player_height}")
 
                 edited_row_data = [row_data[2]] + row_data[5:-5] + row_data[-4:-2] + [row_data[-1]] + [final_player_height]  # Create a new list with the desired columns
-                time_split_list.append(edited_row_data)
+
+                player_name = edited_row_data[0]
+                pure_row_data = edited_row_data[1:]
+
+                pure_row_data = [float(stat) for stat in pure_row_data]  # Convert all stats to floats
+
+                if player_name in player_dict:
+                    player_dict[player_name].append([pure_row_data, time_split])
+                else:
+                    player_dict[player_name] = [[pure_row_data, time_split]]
+
+                time_split_list.append(pure_row_data)
+
+
 
             for row in time_split_list:
                 print(f"new row: {row}")
 
-
-            await browser.close()
+            print(f"at the end of the loop, time_split_list: {time_split}")
 
 
             break
 
-            
+     
             # Find and press the "Load More" button until all data is loaded
         break
     
-
-    return
+    await browser.close()
+    print("Returning player_dict from scrape_data")
+    return player_dict
 
 
 def main():
@@ -170,18 +200,37 @@ def main():
         if loop.is_running():
             # If already running (e.g., IPython/Jupyter), use ensure_future
             task = asyncio.ensure_future(scrape_data())
-            loop.run_until_complete(asyncio.gather(task))
+            player_dict_result = loop.run_until_complete(asyncio.gather(task))
+            print(f"back")
+            player_dict = player_dict_result[0]
         else:
-            loop.run_until_complete(scrape_data())
-        return
+            player_dict = loop.run_until_complete(scrape_data())
+            print(f"back2")
+        
+
     except Exception as e:
         print(f"Error occurred: {e}")
         traceback.print_exc()
         sys.exit(1)
     
-        return
+    for player in player_dict:
+        print(f"Player: {player}")
+        print(f"Data: {player_dict[player]}\n")
+
+    
+    # Now we have a dictionary of players and their data, we can save it to a CSV file or process it further.
+    # Save the player_dict to a CSV file
+    '''with open('player_data.csv', 'w', newline='') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(['Player', 'Height', 'Weight', 'Position', 'Team', 'Final Height'])
+        for player_data in time_split_list:
+            csvwriter.writerow(player_data)
+    print("Player data saved to player_data.csv")'''
+
     
     return
+
+    # FINISH UP MAKING ALL THE NUMBERS FLOATS, AND REMOVE THE BREAKS SO THAT IT SCRAPES ALL THE DATA
 
     # Next Steps:
     # 1. Save all data from a single player, from multiple time splits, into one row of a CSV file. (repeat for each player)
@@ -191,7 +240,7 @@ def main():
     #     together, etc.)
     # 3. Clean the data. Make sure you scale the data right, like what the youtube video said to do. 
     # 4. Make a model that can predict a player's performance based on the data.
-    
+
     # 5. Evaluate the model's performance.
     # 6. Use the model to predict future performance.
     # 7. Visualize the results and predictions.
