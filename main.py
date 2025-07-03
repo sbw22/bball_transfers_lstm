@@ -65,6 +65,7 @@ async def scrape_data():
             year_1 = i if date_list[k][0] == "1" else i+1  
             year_2 = url_year if date_list[k][:2] == "12" and date_list[k+1][:2] == "01" else year_1  # If the date range is from December to January, increment the year by 1
             time_split = f"{year_1}{date_list[k]}-{year_2}{date_list[k+1]}"
+            
 
             # first date = https://barttorvik.com/playerstat.php?link=y&minGP=1&year=2009&start=20081101&end=20081114
             url = f"https://barttorvik.com/playerstat.php?link=y&minGP=1&year={url_year}&start={full_start_date}&end={full_end_date}"
@@ -86,11 +87,12 @@ async def scrape_data():
             tables = await page.querySelectorAll('table')
 
             counter = 0
-            while len(tables) < 2 and counter < 20.0: # If the table does not load in 20 seconds, skip this date range
-                await asyncio.sleep(0.25)  # Wait for the page to load more tables
+            while len(tables) < 2 and counter < 45.0: # If the table does not load in 45 seconds, skip this date range
+                await asyncio.sleep(15)  # Wait for the page to load more tables
                 tables = await page.querySelectorAll('table')
-                # counter += 0.25
-            
+                counter += 15
+                await page.reload()  # Reload the page to try to load the tables again
+
             print(f"table loaded")
 
             more_button = await page.querySelector('td[id="expand"]')
