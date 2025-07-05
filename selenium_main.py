@@ -204,7 +204,7 @@ def scrape_data():
 
                 player_name = f"{row_data[1]} {row_data[2]}"  # Combine first and last name
             
-                edited_row_data = [[player_name]] + row_data[7:-5] + row_data[-4:-2] + [row_data[-1]] + [final_player_height]  # Create a new list with the desired columns
+                edited_row_data = [[player_name]] + row_data[-19:-5] + row_data[-4:-2] + [row_data[-1]] + [final_player_height]  # Create a new list with the desired columns
 
                 pure_row_data = edited_row_data[1:]
 
@@ -213,6 +213,8 @@ def scrape_data():
                     pure_row_data = [float(stat) for stat in pure_row_data]  # Convert all stats to floats
                 except ValueError as e:
                     print(f"Error converting row_data to floats: {e}. skipping this player.")
+                    print(f"row_data: {row_data}")
+                    return
                     continue
 
                 if player_name in player_dict:
