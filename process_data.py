@@ -24,7 +24,7 @@ class DataProcessor:
     def import_data(self):
         file_path = f"selenium_data/biweekly/player_data_2024-25_biweekly.csv"
 
-        temp_dict = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0, "13": 0, "14": 0, "15": 0, "16": 0, "17": 0, "18": 0, "19": 0, "20": 0, "21": 0, "22": 0, "23": 0, "24": 0, "25": 0}
+        temp_dict = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0, "10": 0, "11": 0}
 
 
         total_stats = []
@@ -33,8 +33,15 @@ class DataProcessor:
             reader.__next__()  # Skip the header row
             for row in reader:
                 new_row = [row[0], ast.literal_eval(row[1])]
-                length = len(new_row[1])
+                # print(f"new_row = {new_row}")
+                # return
+                length = len(new_row[1][0]) # Finds the length of the list, not the identifier, in the new row list
 
+                print(f"new_row = {new_row[1]}, length = {length}")
+
+                if length > 14:
+                    print(f"Player with more than 14 time-splits: {new_row[0]} with {length} time-splits")
+                # FIGURE OUT THIS LOGIC
                 '''if length not in temp_dict:
                     temp_dict[length] = 0'''
                 
@@ -49,6 +56,9 @@ class DataProcessor:
         print(f"Total temp_dict: {temp_dict}")
         for key, value in temp_dict.items():
             print(f"Number of players with at least {key} time-splits: {value}")
+        
+            
+
 
         return total_stats
 
@@ -57,7 +67,7 @@ class DataProcessor:
         start = range_str.split('-')[0]  # "1201" from "1201-1214"
         return datetime.strptime(start, "%Y%m%d")
 
-    def align_player(self, raw_splits, prpg, all_splits):
+    def align_player(self, raw_splits, prpg, all_splits): 
         split_dict = dict(zip(raw_splits, prpg))
         return [split_dict.get(s, np.nan) for s in all_splits]
 
@@ -67,17 +77,30 @@ class DataProcessor:
 
     def visualize_data(self, total_stats):
         # Define players of interest
-        player_names = ["Jayden Dawson", "Tre White", "Melvin Council", "Cooper Flagg", "Bennett Stirtz"]
+        player_names = [
+        #"Jayden Dawson", 
+        #"Tre White", 
+        "Dajuan Harris",
+        "Flory Bidunga",
+        "KJ Adams",
+        # "Melvin Council",
+        # "Cooper Flagg",
+        "Bennett Stirtz",
+        ]
         colors = ['darkorange', 'blue', 'green', 'red', 'purple', 'cyan', 'magenta', 'yellow']
 
         # Step 1: Build player name → stats dict
         player_data = {}
         for name in player_names:
+            
             matching = [row for row in total_stats if row[0] == name]
             if not matching:
                 print(f"No data found for player: {name}")
                 return
-            player_data[name] = matching[0][1]
+            if len(matching) > 1:
+                print(f"Multiple entries found for player: {name}. Using the first entry.")
+                return
+            player_data[name] = matching[0][1][0]
 
         # Step 2: Get each player's raw time splits and PRPG values
         player_splits = {}
@@ -135,3 +158,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+# Option 1: Only train model on players with correct amount of time splits. 
+# Option 2: Replace missing time splits with the average of the previous and next time split.
+# Option 3: Use a more complex model that can handle missing data.

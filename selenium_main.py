@@ -37,7 +37,8 @@ def scrape_data():
     # 2. Press the "Load More" button to load all player data.
     # 3. Extract player data from the page.
 
-    date_list = ["1101", "1114", "1201", "1214", "0101", "0114", "0201", "0214", "0301", "0314", "0401", "0414", "0501", "0514", "0601"]
+    # date_list = ["1101", "1114", "1201", "1214", "0101", "0114", "0201", "0214", "0301", "0314", "0401", "0414", "0501", "0514", "0601"]
+    date_list = ["1101", "1114", "1201", "1214", "0101", "0114", "0201", "0214", "0301", "0314", "0401"]
 
 
     chrome_options = Options()
@@ -69,8 +70,6 @@ def scrape_data():
             driver.delete_all_cookies()
 
             print(f"Scraping data for date range: {date_list[k]} to {date_list[k+1]}")
-
-            time_split_list = []
 
             date_list_month = int(date_list[k][:2])
 
@@ -169,9 +168,6 @@ def scrape_data():
             table_list = table_text.split('\n')
 
             
-
-            # print(f"table_list: {table_list}")
-            time_split_list = []
             
             for row in table_list:  # Iterate through each row in the table
 
@@ -203,6 +199,8 @@ def scrape_data():
                 # print(f"final_player_height: {final_player_height}")
 
                 player_name = f"{row_data[1]} {row_data[2]}"  # Combine first and last name
+
+                player_identifier = f"{row_data[3:-19]}" # Includes the player's team, conference, and other identifiers               
             
                 edited_row_data = [[player_name]] + row_data[-19:-5] + row_data[-4:-2] + [row_data[-1]] + [final_player_height]  # Create a new list with the desired columns
 
@@ -210,37 +208,29 @@ def scrape_data():
 
                 # print(f"row_data: {row_data}")
                 try:
-                    pure_row_data = [float(stat) for stat in pure_row_data]  # Convert all stats to floats
+                    pure_row_data = [float(stat) for stat in pure_row_data[:-1]]  # Convert all stats to floats
                 except ValueError as e:
                     print(f"Error converting row_data to floats: {e}. skipping this player.")
                     print(f"row_data: {row_data}")
                     return
                     continue
 
-                if player_name in player_dict:
-                    player_dict[player_name].append([pure_row_data, time_split])
+                if player_name in player_dict and player_identifier in player_dict[player_name]:  # Check if player already exists in the dictionary and has an identifier unique to them
+                    player_dict[player_name][0].append([pure_row_data, time_split])
                 else:
-                    player_dict[player_name] = [[pure_row_data, time_split]]
+                    player_dict[player_name] = [[[pure_row_data, time_split]], player_identifier]
 
 
 
-                time_split_list.append(pure_row_data)
 
             
                 # print(f"new row_data: {row_data}")
 
 
 
-            '''for row in time_split_list:
-                print(f"new row: {row}")'''
+            
 
-            # print(f"at the end of the loop, time_split_list: {time_split_list}")
-
-            # return player_dict  # Return the player_dict after scraping all data for the current date range
-
-
-                # Find and press the "Load More" button until all data is loaded
-            time.sleep(200)
+            # time.sleep(200)
 
     driver.quit()  # Close the browser after scraping all data
     print(f"Total players scraped: {len(player_dict)}")
@@ -260,6 +250,7 @@ def main():
     # 5. Use the model to predict future performance.
     # 6. Visualize the results and predictions.
     # 7. Save the model for future use.
+
 
 
     try:
@@ -282,9 +273,6 @@ def main():
         traceback.print_exc()
         sys.exit(1)
     
-    '''for player in player_dict:
-        print(f"Player: {player}")
-        print(f"Data: {player_dict[player]}\n")'''
 
     
     # Now we have a dictionary of players and their data, we can save it to a CSV file or process it further.
@@ -317,11 +305,7 @@ def main():
 
     # 1. Save the scraped data to a CSV file.
 
-    '''with open('bball_data.csv', 'w', newline='') as csvfile:
-        csvwriter = csv.writer(csvfile)
-        csvwriter.writerow(['Player', 'Height', 'Weight', 'Position', 'Team', 'Final Height'])
-        for player_data in time_split_list:
-            csvwriter.writerow(player_data)'''
+
 
 
 if __name__ == "__main__":
