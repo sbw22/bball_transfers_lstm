@@ -15,6 +15,9 @@ import numpy as np
 from scipy.stats import pearsonr
 from datetime import datetime
 from sklearn.preprocessing import StandardScaler
+from joblib import dump
+import pickle
+import joblib
 
 
 
@@ -90,16 +93,22 @@ class DataProcessor:
     def visualize_data(self, total_yearly_stats, complete_players):
         # Define players of interest
         player_names = [
-        #"Jayden Dawson", 
-        #"Tre White", 
-        "Dajuan Harris",
-        # "Flory Bidunga",
-        "KJ Adams",
-        "Hunter Dickinson",
-        "Zeke Mayo",
-        # "Melvin Council",
         # "Cooper Flagg",
-        # "Bennett Stirtz",
+        "V.J. Edgecombe",
+        # "Dylan Harper",
+        # "Ace Bailey",
+        "Kon Knueppel",
+        "LJ Cryer",
+        # "Jayden Dawson", 
+        # "Tre White", 
+        # "Dajuan Harris",
+        # "Flory Bidunga",
+        # "KJ Adams",
+        # "Hunter Dickinson",
+        # "Zeke Mayo",
+        # "Melvin Council",
+        "Bennett Stirtz",
+        "Donovan Sanders",
         ]
         colors = ['darkorange', 'blue', 'green', 'red', 'purple', 'cyan', 'magenta', 'yellow']
 
@@ -112,7 +121,7 @@ class DataProcessor:
                 print(f"No data found for player: {name}")
                 return
             if len(matching) > 1:
-                print(f"Multiple entries found for player: {name}. Using the first entry.")
+                print(f"Multiple entries found for player: {name}. Exiting function . . .")
                 return
             player_data[name] = matching[0][1][0]
 
@@ -228,18 +237,69 @@ class DataProcessor:
                     scaled_stat = scaler_list[i].transform([[unscaled_stat]])
                     scaled_player_stats[1][k].append(scaled_stat)
 
-            print(f"scaled_player_stats: {scaled_player_stats}")
-            return
+            '''print(f"scaled_player_stats: {scaled_player_stats}")
+            return'''
 
-            scaled_data.append(scaled_player_stats)
 
             '''print(f"player_data length: {len(player_data[1][0])}")
             print(f"player_data: {player_data[1][0]}")'''
 
             scaled_data.append(scaled_player_stats)  # Append the scaled player stats to the scaled_data list
-            return
+            # return
         
-        return scaled_data
+        print(f"scaler_list = {scaler_list}")
+        
+        return scaled_data, scaler_list
+
+
+    def find_y(self, scaled_data):
+        # This function will find the y values for the model, which is the stat that we are trying to predict
+        
+
+        # STAT INDEX
+        # 0 = MIN%
+        # 1 = PRPG!
+        # 2 = BPM
+        # 3 = ORTG
+        # 4 = USG
+        # 5 = EFG
+        # 6 = TS
+        # 7 = OR
+        # 8 = DR
+        # 9 = AST
+        # 10 = TO
+        # 11 = BLK
+        # 12 = STL
+        # 13 = FTR
+        # 14 = 2P
+        # 15 = 3P/100
+        # 16 = 3P
+
+        # I want to remove the stat that I am trying to predict, and append it to the end of the player data list. I want the new y stat to be in the same format as the scaled_data list, so that I can use it to train the model. I then want to remove the stat that I am trying to predict from the scaled_data list, so that I can use it to train the model without the stat that I am trying to predict.
+
+        stat_index = 1  # Change this to the index of the stat you want to predict
+        print(f"length of scaled_data[0][1][0] at the beginning of find_y: {len(scaled_data[0][1][0])}")
+        
+        for player_data in scaled_data:
+            y_list = []
+            for time_split in player_data[1]:  # Loop through each player's time split data
+                # time_split = [[stat1, stat2, ...], 'time_split_string']
+                # print(f"\ntime_split: {time_split}\n")
+                y_list.append(time_split[stat_index])  # Append the stat that we are trying to predict to the y_list
+                # y_list.append(time_split[0][stat_index])
+                time_split.pop(stat_index)  # Remove the stat that we are trying to predict from the time split data list
+            player_data.append(y_list)  # Append the y values to the end
+
+            # print(f"player_data after y separation: {player_data}")
+            '''for item in player_data:
+                print(f"item: {item}\n")
+            print(f"length of player_data[1]: {len(player_data[1][0])}")
+            return'''
+
+        print(f"length of scaled_data[0][1][0] at the end of find_y: {len(scaled_data[0][1][0])}")
+        return scaled_data  # Return the scaled data with the y values appended to the end of each player's data
+
+
     
         
 
@@ -254,10 +314,26 @@ def main():
 
     processor.visualize_data(yearly_data[-1], complete_players)  # Pass in the last year in data
 
+    # return 
+    # THIS RETURN IS HERE SO I CAN JUST VISUALIZE THE DATA WHEN I RUN THIS SCRIPT WHITHOUT MAKING MAJOR CHANGES TO THE DATA. IF YOU WANT TO SCALE THE DATA, REMOVE THIS. 
+
     '''for row in data:
         print(f"Player: {row[0]}, stats = {row[1]}")'''
     
-    scaled_data = processor.scale_data(complete_players)
+    scaled_data, scaler_list = processor.scale_data(complete_players)
+
+    scaled_seperated_data = processor.find_y(scaled_data)
+
+    # seperated_data is in the format:
+    # ['player name', [timesplit_data1, timesplit_data2, ...], 'season_year', [y_values]]
+
+
+    print(f"length of player_data[1] in final iteration: {len(scaled_seperated_data[0][1][0])}")
+
+    joblib.dump(scaled_seperated_data, "scaled_data_and_scalers/scaled_seperated_data.joblib")
+    # joblib.dump(y, "processed_data/y.joblib")
+
+    joblib.dump(scaler_list, 'scaled_data_and_scalers/scaler_list.pkl')
 
 
 
