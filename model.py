@@ -47,10 +47,29 @@ def find_X_and_y(ss_data):
 
     return X, y, player_names, player_years
 
+def find_target_player(ss_data):
+    target_player = "Hunter Dickinson"
+    target_year = "2024-25"
+
+    for player_data in ss_data:
+        temp_name = player_data[0]
+        temp_year = player_data[2]
+        if temp_name == target_player and temp_year == target_year:
+            moving_player_data = ss_data.pop(ss_data.index(player_data))
+            ss_data.append(moving_player_data)
+            return ss_data
+
+    return
+
 def import_stats():
     scaled_seperated_data = joblib.load("scaled_data_and_scalers/scaled_seperated_data.joblib")
     scaler_list = joblib.load("scaled_data_and_scalers/scaler_list.pkl")
 
+    try:
+        scaled_seperated_data = find_target_player(scaled_seperated_data)
+    except Exception as e:
+        print(f"Error finding target player: {e}")
+        return None, None, None, None, None
 
     # Add function here that makes X and y from the scaled_sperated_data, and makes another list that holds the names of the players in the same order as their stats. 
     X, y, player_names, player_years = find_X_and_y(scaled_seperated_data)
@@ -193,6 +212,9 @@ def test_and_evaluate_model(model, X_full_test_sequence, y_full_test_sequence, t
     pred_x_indices = list(range(start_index - 1, start_index + output_steps))
     pred_y_values = [full_y_true_unscaled[start_index - 1, 0]] + list(y_pred_unscaled.flatten())
 
+    label_list = ["MIN%", "PRPG!", "BPM", "ORTG", "USG", "EFG", "TS", "OR", "DR", "AST", "TO", "BLK", "STL", "FTR", "2P", "3P/100", "3P"]
+    chosen_label = label_list[target_index]  # Get the label for the chosen feature
+
     # Print predicted vs true
     print(f"\nPredicting last {output_steps} value(s) of the sequence for player: {test_player_name} in the {test_player_year} season")
     print(f"\nPredicted vs True Values (Unscaled):")
@@ -216,11 +238,24 @@ def test_and_evaluate_model(model, X_full_test_sequence, y_full_test_sequence, t
              color='red', marker='x', linestyle='None')
     
     # plt.axvline(start_index, color='gray', linestyle=':', label="Prediction Starts")
-    plt.title(f"{test_player_name}'s Sequence with Last {output_steps} Values Predicted In The {test_player_year} Season")
-    plt.xlabel("Time Step")
-    plt.ylabel("Original Scale Value")
+    plt.title(f"{test_player_name}'s Sequence with Last {output_steps} Values Predicted In The {test_player_year} Season -- {chosen_label}")
+    plt.xlabel("Time Period")
+    plt.ylabel(f"{chosen_label}")
     plt.legend()
     plt.grid(True)
+    
+    # Custom x-axis labels
+    custom_labels = ["Nov 1-14", "Nov 14-Dec 1", "Dec 1-14", "Dec 14-Jan 1", 
+                     "Jan 1-14", "Jan 14-Feb 1", "Feb 1-14", "Feb 14-Mar 1", 
+                     "Mar 1-14", "Mar 14-Apr 1"]
+    
+    # Set custom x-axis labels (only if we have enough labels for the data)
+    if len(custom_labels) >= len(full_y_true_unscaled):
+        plt.xticks(range(len(full_y_true_unscaled)), custom_labels[:len(full_y_true_unscaled)], rotation=45, ha='right')
+        plt.subplots_adjust(bottom=0.15)  # Make room for rotated labels
+    else:
+        plt.tight_layout()  # Only use tight_layout if not using custom labels
+    
     plt.show()
 
 

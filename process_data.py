@@ -94,21 +94,20 @@ class DataProcessor:
         # Define players of interest
         player_names = [
         # "Cooper Flagg",
-        "V.J. Edgecombe",
+        # "V.J. Edgecombe",
         # "Dylan Harper",
         # "Ace Bailey",
-        "Kon Knueppel",
-        "LJ Cryer",
+        # "Kon Knueppel",
+        # "LJ Cryer",
         # "Jayden Dawson", 
         # "Tre White", 
         # "Dajuan Harris",
         # "Flory Bidunga",
         # "KJ Adams",
-        # "Hunter Dickinson",
+        "Hunter Dickinson",
         # "Zeke Mayo",
         # "Melvin Council",
-        "Bennett Stirtz",
-        "Donovan Sanders",
+        # "Bennett Stirtz",
         ]
         colors = ['darkorange', 'blue', 'green', 'red', 'purple', 'cyan', 'magenta', 'yellow']
 
@@ -163,7 +162,7 @@ class DataProcessor:
         plt.grid(True, linestyle='--', alpha=0.7)
         plt.legend()
         plt.tight_layout()
-        # plt.show()
+        plt.show()
 
         return
     
@@ -278,6 +277,7 @@ class DataProcessor:
         # I want to remove the stat that I am trying to predict, and append it to the end of the player data list. I want the new y stat to be in the same format as the scaled_data list, so that I can use it to train the model. I then want to remove the stat that I am trying to predict from the scaled_data list, so that I can use it to train the model without the stat that I am trying to predict.
 
         stat_index = 1  # Change this to the index of the stat you want to predict
+        # TWIN STAT IS CALLED target_index AND IS IN test_and_evaluate_model FUNCTION IN model.py. BOTH MUST BE CHANGED TOGETHER.
         print(f"length of scaled_data[0][1][0] at the beginning of find_y: {len(scaled_data[0][1][0])}")
         
         for player_data in scaled_data:
@@ -314,7 +314,7 @@ def main():
 
     processor.visualize_data(yearly_data[-1], complete_players)  # Pass in the last year in data
 
-    # return 
+    return
     # THIS RETURN IS HERE SO I CAN JUST VISUALIZE THE DATA WHEN I RUN THIS SCRIPT WHITHOUT MAKING MAJOR CHANGES TO THE DATA. IF YOU WANT TO SCALE THE DATA, REMOVE THIS. 
 
     '''for row in data:
