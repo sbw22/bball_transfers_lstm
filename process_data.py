@@ -286,29 +286,30 @@ class DataProcessor:
     def find_y(self, scaled_data):
         # This function will find the y values for the model, which is the stat that we are trying to predict
         
+        # Below average, Ok, Average, Good, Pretty good, Great
 
         # STAT INDEX
-        # 0 = MIN%
-        # 1 = PRPG!
-        # 2 = BPM
-        # 3 = ORTG
-        # 4 = USG
-        # 5 = EFG
-        # 6 = TS
-        # 7 = OR
-        # 8 = DR
-        # 9 = AST
-        # 10 = TO
-        # 11 = BLK
-        # 12 = STL
-        # 13 = FTR
-        # 14 = 2P
-        # 15 = 3P/100
-        # 16 = 3P
+        # 0 = MIN%     # Ok                 * *
+        # 1 = PRPG!    # Pretty Good        * * * *
+        # 2 = BPM.     # Average            * * *
+        # 3 = ORTG.    # Pretty Good        * * * *
+        # 4 = USG.     # Below Average      *
+        # 5 = EFG.     # Great              * * * * *
+        # 6 = TS       # Great              * * * * *
+        # 7 = OR.      # Ok                 * *
+        # 8 = DR       # Ok                 * *
+        # 9 = AST      # Average.           * * *
+        # 10 = TO      # Ok                 * *
+        # 11 = BLK     # Below Average      *
+        # 12 = STL     # Ok                 * *
+        # 13 = FTR     # Ok                 * *
+        # 14 = 2P      # Great              * * * * *
+        # 15 = 3P/100  # Ok                 * *
+        # 16 = 3P      # Pretty good        * * * *
 
-        # I want to remove the stat that I am trying to predict, and append it to the end of the player data list. I want the new y stat to be in the same format as the scaled_data list, so that I can use it to train the model. I then want to remove the stat that I am trying to predict from the scaled_data list, so that I can use it to train the model without the stat that I am trying to predict.
-
-        stat_index = 1  # Change this to the index of the stat you want to predict
+        # ***************************************************************************************************************
+        stat_index = 5  # Change this to the index of the stat you want to predict
+        # ***************************************************************************************************************
         # TWIN STAT IS CALLED target_index AND IS IN test_and_evaluate_model FUNCTION IN model.py. BOTH MUST BE CHANGED TOGETHER.
         print(f"length of scaled_data[0][1][0] at the beginning of find_y: {len(scaled_data[0][1][0])}")
         
@@ -331,7 +332,7 @@ def main():
 
     career_players = processor.find_career_players(complete_players)
 
-    for item in complete_players[0]:
+    '''for item in complete_players[0]:
         print(f"item: {item}")
 
 
@@ -343,15 +344,15 @@ def main():
     
     print(f"Number of players with name {target_player}: {player_counter}")
 
-    return
+    return'''
 
-    print(f"type of data: {type(yearly_data)}")
+    '''print(f"type of data: {type(yearly_data)}")
     print(f"first entry in complete_players: {complete_players[0]}")
-    print(f"length of complete_players: {len(complete_players)}")
+    print(f"length of complete_players: {len(complete_players)}")'''
 
-    processor.visualize_data(yearly_data[-1], complete_players)  # Pass in the last year in data
+    # processor.visualize_data(yearly_data[-1], complete_players)  # Pass in the last year in data
 
-    return
+    # return
     # THIS RETURN IS HERE SO I CAN JUST VISUALIZE THE DATA WHEN I RUN THIS SCRIPT WHITHOUT MAKING MAJOR CHANGES TO THE DATA. IF YOU WANT TO SCALE THE DATA, REMOVE THIS. 
 
     
@@ -370,7 +371,7 @@ def main():
     joblib.dump(scaler_list, 'scaled_data_and_scalers/scaler_list.pkl')
 
 
-
+    print(f"end of main function in process_data.py")
 if __name__ == "__main__":
     main()
 

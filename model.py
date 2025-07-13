@@ -18,9 +18,16 @@ import pickle
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
+# Usable Examples:
+# Cooper Flagg
+# Dajuan Harris
+# Hunter Dickinson
+# Zeke Mayo
+# Kon Knueppel
+# V.J. Edgecombe
 
 def find_target_player(ss_data):
-    target_player = "Cooper Flagg"
+    target_player = "Eric Dixon"  # Change this to the player you want to find
     target_year = "2024-25"
 
     for player_data in ss_data:
@@ -159,8 +166,8 @@ def compile_lstm_model(X_train, y_train, output_steps):
     model.add(Dense(int(output_steps)))  # Predict all steps at once (flattened)
     # model.add(keras.layers.Reshape((output_steps, y_train.shape[1])))  # Reshape to (steps, features)
 
-    model.compile(optimizer='adam', loss=Huber(delta=1.0))
-    model.fit(X_train, y_train, epochs=150, batch_size=32)
+    model.compile(optimizer='adam', loss=Huber(delta=1.0))    # Huber(delta=1.0))
+    model.fit(X_train, y_train, epochs=100, batch_size=32, validation_split=0.2, shuffle=True)
     return model
 
 
@@ -191,7 +198,9 @@ def test_and_evaluate_model(model, X_full_test_sequence, y_full_test_sequence, t
     print(f"Model prediction shape: {y_pred.shape}")
     
     # For plotting, we'll use the first feature/scaler
-    target_index = 1  # Use selected feature/scaler for plotting
+    # ***************************************************************************************************************
+    target_index = 5  # Use selected feature/scaler for plotting
+    # ***************************************************************************************************************
     # target_index IS VERY IMPORTANT: IT DETERMINES WHICH FEATURE TO PLOT AND UNDO SCALING FOR. 
     # target_index MUST MATCH THE VARIABLE stat_index, WHICH WAS DEFINED IN PROCESS_DATA.PY. THESE
     # VARIABLES PICK WHICH FEATURE TO PLOT AND UNDO SCALING FOR.
@@ -276,7 +285,9 @@ def main():
     X_train, X_full_test_sequence, y_train, y_full_test_sequence, test_player_name, test_player_year = find_train_test_split(X_processed, y_processed, player_names, player_years)
 
     # FLEXIBLE PARAMETER: Change this to predict any number of future time steps
+    # ***************************************************************************************************************
     output_steps = 3  # Number of future time steps to predict (e.g., 3 = predict next 3 time points)
+    # ***************************************************************************************************************
     
     y_train_sliced = slice_y_to_output_steps(y_train, output_steps)
     full_y_true_scaled = y_processed[-1]  # last player's full y sequence (scaled)
