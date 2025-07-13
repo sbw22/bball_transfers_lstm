@@ -10,6 +10,7 @@ from keras import optimizers
 from keras.callbacks import History
 from keras.models import Model
 from keras.layers import Dense, Dropout, LSTM, Input, Activation, concatenate
+from keras.losses import Huber
 import numpy as np
 import joblib
 import ast
@@ -17,6 +18,20 @@ import pickle
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
+
+def find_target_player(ss_data):
+    target_player = "Cooper Flagg"
+    target_year = "2024-25"
+
+    for player_data in ss_data:
+        temp_name = player_data[0]
+        temp_year = player_data[2]
+        if temp_name == target_player and temp_year == target_year:
+            moving_player_data = ss_data.pop(ss_data.index(player_data))
+            ss_data.append(moving_player_data)
+            return ss_data
+
+    return
 
 
 def find_X_and_y(ss_data):
@@ -47,19 +62,7 @@ def find_X_and_y(ss_data):
 
     return X, y, player_names, player_years
 
-def find_target_player(ss_data):
-    target_player = "Hunter Dickinson"
-    target_year = "2024-25"
 
-    for player_data in ss_data:
-        temp_name = player_data[0]
-        temp_year = player_data[2]
-        if temp_name == target_player and temp_year == target_year:
-            moving_player_data = ss_data.pop(ss_data.index(player_data))
-            ss_data.append(moving_player_data)
-            return ss_data
-
-    return
 
 def import_stats():
     scaled_seperated_data = joblib.load("scaled_data_and_scalers/scaled_seperated_data.joblib")
@@ -156,8 +159,8 @@ def compile_lstm_model(X_train, y_train, output_steps):
     model.add(Dense(int(output_steps)))  # Predict all steps at once (flattened)
     # model.add(keras.layers.Reshape((output_steps, y_train.shape[1])))  # Reshape to (steps, features)
 
-    model.compile(optimizer='adam', loss='mae')
-    model.fit(X_train, y_train, epochs=200, batch_size=32)
+    model.compile(optimizer='adam', loss=Huber(delta=1.0))
+    model.fit(X_train, y_train, epochs=150, batch_size=32)
     return model
 
 
@@ -249,6 +252,7 @@ def test_and_evaluate_model(model, X_full_test_sequence, y_full_test_sequence, t
                      "Jan 1-14", "Jan 14-Feb 1", "Feb 1-14", "Feb 14-Mar 1", 
                      "Mar 1-14", "Mar 14-Apr 1"]
     
+    
     # Set custom x-axis labels (only if we have enough labels for the data)
     if len(custom_labels) >= len(full_y_true_unscaled):
         plt.xticks(range(len(full_y_true_unscaled)), custom_labels[:len(full_y_true_unscaled)], rotation=45, ha='right')
@@ -283,6 +287,17 @@ def main():
 
     print(f"X_processed shape: {X_processed.shape}")
     print(f"y_processed shape: {y_processed.shape}")
+
+
+    # OPTIONS FOR NEXT STEPS:
+    # 1. Make model that predicts a whole season's worth of stats
+    # A. Modify the output layer to predict all time steps at once and adjust the loss function accordingly.
+    # B. Change the amount of input data to include the entire season's stats, not just biweekly.
+    # C. Change the model architecture to handle longer sequences.
+
+
+
+    # 2. Change model input data (X) from pure biweekly stats to the difference between biweekly stats
 
 if __name__ == "__main__":
     main()

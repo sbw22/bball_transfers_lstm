@@ -31,6 +31,7 @@ class DataProcessor:
         
         list_of_yearly_data = []
         complete_players = []
+        career_players = []   # This will hold the career stats of players 
 
         for i in range(20, 25):
             
@@ -54,10 +55,8 @@ class DataProcessor:
                     if length == 10:
                         # Add player to the list of complete players
                         complete_players.append(new_row)
-
-                    # FIGURE OUT THIS LOGIC
-                    '''if length not in temp_dict:
-                        temp_dict[length] = 0'''
+                        # If the player has 10 time splits, add the list of that season to that player's career players list
+                        
                     
                     for key, value in temp_dict.items():
                         if length >= int(key):
@@ -74,10 +73,48 @@ class DataProcessor:
             list_of_yearly_data.append(total_yearly_stats)
 
         return list_of_yearly_data, complete_players
-
-
-
     
+
+    def find_career_players(self, complete_players):
+        # This function will find the career players, which are players that have 10 time splits in a season for multiple seasons
+        # It will return a list of career players, which is a list of lists, where each list is a player's career stats
+
+        career_players = []
+        temp_dict = dict()
+
+        print(f"complete_players[0][2]: {complete_players[0][2]}")  # This prints the first player's first time split data list, which is a list of lists with the time split string and the stats
+        return
+
+        for player_data in complete_players:
+            player_name = player_data[0]
+            player_identifier = player_data[1][1]
+
+            if player_name not in temp_dict: # Make new dictionary entry for new players
+                temp_dict[player_name] = [[], player_identifier]  # Initialize the player's list with an empty list and their identifier
+            
+            temp_name_list = [player_name for player_name in temp_dict]  # This is a list of all the players' lists in the temp_dict
+            
+            for player_name in temp_name_list:
+                if player_identifier == temp_dict[player_name][1]:
+                    temp_dict[player_name][0].append([player_data]) # Append the player's time split and year to the player's list in the dictionary
+            
+            '''if player_identifier not in temp_dict[player_name][0]:
+                temp_dict[player_name][0].append(player_identifier)'''
+
+            temp_dict[player_name].append(player_data[1][0])  # Append the player's time splits to the dictionary
+
+        for player_name in temp_dict:
+            player_data_list = temp_dict[player_name][0]
+            if len(player_data_list) >= 2:  # Check if the player has multiple seasons
+                career_players.append([player_name, player_data_list])
+
+            # player_name format in career_players
+            # [player_name, [complete_player_data1, complete_player_data2, ...]] ]
+
+
+        return career_players
+
+
     def parse_start_date(self, range_str):
         start = range_str.split('-')[0]  # "1201" from "1201-1214"
         return datetime.strptime(start, "%Y%m%d")
@@ -214,11 +251,6 @@ class DataProcessor:
 
 
 
-
-
-
-
-
         # This loop scales the stats for each player using the scalers created above
         for player_data in complete_players:
 
@@ -284,29 +316,34 @@ class DataProcessor:
             y_list = []
             for time_split in player_data[1]:  # Loop through each player's time split data
                 # time_split = [[stat1, stat2, ...], 'time_split_string']
-                # print(f"\ntime_split: {time_split}\n")
+
                 y_list.append(time_split[stat_index])  # Append the stat that we are trying to predict to the y_list
-                # y_list.append(time_split[0][stat_index])
                 time_split.pop(stat_index)  # Remove the stat that we are trying to predict from the time split data list
             player_data.append(y_list)  # Append the y values to the end
-
-            # print(f"player_data after y separation: {player_data}")
-            '''for item in player_data:
-                print(f"item: {item}\n")
-            print(f"length of player_data[1]: {len(player_data[1][0])}")
-            return'''
 
         print(f"length of scaled_data[0][1][0] at the end of find_y: {len(scaled_data[0][1][0])}")
         return scaled_data  # Return the scaled data with the y values appended to the end of each player's data
 
 
-    
-        
-
-
 def main():
     processor = DataProcessor()
     yearly_data, complete_players = processor.import_data()
+
+    career_players = processor.find_career_players(complete_players)
+
+    for item in complete_players[0]:
+        print(f"item: {item}")
+
+
+    target_player = "Hunter Dickinson"
+    player_counter = 0
+    for player_data in complete_players:
+        if player_data[0] == target_player:
+            player_counter += 1
+    
+    print(f"Number of players with name {target_player}: {player_counter}")
+
+    return
 
     print(f"type of data: {type(yearly_data)}")
     print(f"first entry in complete_players: {complete_players[0]}")
@@ -317,8 +354,6 @@ def main():
     return
     # THIS RETURN IS HERE SO I CAN JUST VISUALIZE THE DATA WHEN I RUN THIS SCRIPT WHITHOUT MAKING MAJOR CHANGES TO THE DATA. IF YOU WANT TO SCALE THE DATA, REMOVE THIS. 
 
-    '''for row in data:
-        print(f"Player: {row[0]}, stats = {row[1]}")'''
     
     scaled_data, scaler_list = processor.scale_data(complete_players)
 
@@ -331,7 +366,6 @@ def main():
     print(f"length of player_data[1] in final iteration: {len(scaled_seperated_data[0][1][0])}")
 
     joblib.dump(scaled_seperated_data, "scaled_data_and_scalers/scaled_seperated_data.joblib")
-    # joblib.dump(y, "processed_data/y.joblib")
 
     joblib.dump(scaler_list, 'scaled_data_and_scalers/scaler_list.pkl')
 

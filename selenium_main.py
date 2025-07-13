@@ -108,15 +108,7 @@ def scrape_data():
                 tables = driver.find_elements(By.CSS_SELECTOR, 'table')
                 if len(tables) >= 2:  # Check if the table is loaded
                     break
-            '''
-            try:
-                # Wait for the page to load and for at least 2 tables to be present
-                WebDriverWait(driver, 120).until(
-                    lambda d: len(d.find_elements(By.CSS_SELECTOR, 'table')) >= 2
-                )
-            except Exception as e:
-                print(f"Failed to load tables for URL: {url} — {e}")
-                continue'''
+
             
 
             tables = driver.find_elements(By.CSS_SELECTOR, 'table')
@@ -140,20 +132,7 @@ def scrape_data():
                     load_more_button.click()
                     time.sleep(0.1)
             
-            '''while True:
-                try:
-                    more_button = driver.find_element(By.ID, 'expand')
 
-                    # Exit if button is not displayed or disabled
-                    if not more_button.is_displayed() or not more_button.is_enabled():
-                        break
-
-                    more_button.click()
-                    time.sleep(0.02)
-
-                except (ElementClickInterceptedException, StaleElementReferenceException, NoSuchElementException):
-                    # Break if the button disappears or can't be interacted with anymore
-                    break'''
             
             tables = driver.find_elements(By.CSS_SELECTOR, 'table')
 
