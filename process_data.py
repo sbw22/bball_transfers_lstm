@@ -286,7 +286,7 @@ class DataProcessor:
     def find_y(self, scaled_data):
         # This function will find the y values for the model, which is the stat that we are trying to predict
         
-        # Below average, Ok, Average, Good, Pretty good, Great
+        # Below average, Ok, Average, Pretty good, Great
 
         # STAT INDEX
         # 0 = MIN%     # Ok                 * *
@@ -308,7 +308,7 @@ class DataProcessor:
         # 16 = 3P      # Pretty good        * * * *
 
         # ***************************************************************************************************************
-        stat_index = 5  # Change this to the index of the stat you want to predict
+        stat_index = 15  # Change this to the index of the stat you want to predict
         # ***************************************************************************************************************
         # TWIN STAT IS CALLED target_index AND IS IN test_and_evaluate_model FUNCTION IN model.py. BOTH MUST BE CHANGED TOGETHER.
         print(f"length of scaled_data[0][1][0] at the beginning of find_y: {len(scaled_data[0][1][0])}")
@@ -319,7 +319,8 @@ class DataProcessor:
                 # time_split = [[stat1, stat2, ...], 'time_split_string']
 
                 y_list.append(time_split[stat_index])  # Append the stat that we are trying to predict to the y_list
-                time_split.pop(stat_index)  # Remove the stat that we are trying to predict from the time split data list
+                # time_split.pop(stat_index)  # Remove the stat that we are trying to predict from the time split data list
+                # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             player_data.append(y_list)  # Append the y values to the end
 
         print(f"length of scaled_data[0][1][0] at the end of find_y: {len(scaled_data[0][1][0])}")

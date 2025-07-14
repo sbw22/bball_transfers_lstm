@@ -25,9 +25,10 @@ from sklearn.model_selection import train_test_split
 # Zeke Mayo
 # Kon Knueppel
 # V.J. Edgecombe
+# Eric Dixon
 
 def find_target_player(ss_data):
-    target_player = "Eric Dixon"  # Change this to the player you want to find
+    target_player = "V.J. Edgecombe"  # Change this to the player you want to find
     target_year = "2024-25"
 
     for player_data in ss_data:
@@ -199,7 +200,7 @@ def test_and_evaluate_model(model, X_full_test_sequence, y_full_test_sequence, t
     
     # For plotting, we'll use the first feature/scaler
     # ***************************************************************************************************************
-    target_index = 5  # Use selected feature/scaler for plotting
+    target_index = 15  # Use selected feature/scaler for plotting
     # ***************************************************************************************************************
     # target_index IS VERY IMPORTANT: IT DETERMINES WHICH FEATURE TO PLOT AND UNDO SCALING FOR. 
     # target_index MUST MATCH THE VARIABLE stat_index, WHICH WAS DEFINED IN PROCESS_DATA.PY. THESE
