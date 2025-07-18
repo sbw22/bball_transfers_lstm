@@ -20,7 +20,7 @@ from sklearn.model_selection import train_test_split
 
 
 
-def find_target_player(ss_complete_data, ss_career_data):
+def select_player(ss_complete_data, ss_career_data):
 
     usable_examples = [
         "Cooper Flagg",
@@ -41,10 +41,10 @@ def find_target_player(ss_complete_data, ss_career_data):
         "Alston Mason",
     ]
 
-    target_player = "Johni Broome"  # Change this to the player you want to find
+    target_player = "RJ Davis"  # Change this to the player you want to find
     target_year = "2024-25"
 
-    print(f"last item in ss_career_data: {ss_career_data[-1]}")
+    # print(f"last item in ss_career_data: {ss_career_data[-1]}")
     
 
     for player_data in ss_complete_data:
@@ -71,7 +71,7 @@ def find_target_player(ss_complete_data, ss_career_data):
     return
 
 
-def find_y(complete_scaled_data, career_scaled_data):
+def find_target_player(complete_scaled_data, career_scaled_data):
     # This function will find the y values for the model, which is the stat that we are trying to predict
     
     # Below average, Ok, Average, Pretty good, Great
@@ -96,18 +96,17 @@ def find_y(complete_scaled_data, career_scaled_data):
     # 16 = 3P      # Pretty good        * * * *
 
     # ***************************************************************************************************************
-    stat_index = 7  # Change this to the index of the stat you want to predict
+    target_index = 7  # Change this to the index of the stat you want to predict
     # ***************************************************************************************************************
-    # TWIN STAT IS CALLED target_index AND IS IN test_and_evaluate_model FUNCTION IN model.py. BOTH MUST BE CHANGED TOGETHER.
-    # print(f"length of complete_scaled_data[0][1][0] at the beginning of find_y: {len(complete_scaled_data[0][1][0])}")
+    # target_index IS VERY IMPORTANT: IT DETERMINES WHICH FEATURE TO PLOT AND UNDO SCALING FOR. 
 
     for player_data in complete_scaled_data:
         complete_y_list = []
         for time_split in player_data[1]:  # Loop through each player's time split data
             # time_split = [[stat1, stat2, ...], 'time_split_string']
 
-            complete_y_list.append(time_split[stat_index])  # Append the stat that we are trying to predict to the y_list
-            # time_split.pop(stat_index)  # Remove the stat that we are trying to predict from the time split data list
+            complete_y_list.append(time_split[target_index])  # Append the stat that we are trying to predict to the y_list
+            # time_split.pop(target_index)  # Remove the stat that we are trying to predict from the time split data list
             # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         player_data.append(complete_y_list)  # Append the y values to the end
 
@@ -118,14 +117,14 @@ def find_y(complete_scaled_data, career_scaled_data):
             for time_split in player_data[1]:  # Loop through each player's time split data
                 # time_split = [[stat1, stat2, ...], 'time_split_string']
 
-                complete_y_list.append(time_split[stat_index])  # Append the stat that we are trying to predict to the y_list
-                # time_split.pop(stat_index)  # Remove the stat that we are trying to predict from the time split data list
+                complete_y_list.append(time_split[target_index])  # Append the stat that we are trying to predict to the y_list
+                # time_split.pop(target_index)  # Remove the stat that we are trying to predict from the time split data list
                 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             player_data.append(complete_y_list)  # Append the y values to the end
             
 
 
-        return complete_scaled_data, career_scaled_data  # Return the scaled data with the y values appended to the end of each player's data
+    return complete_scaled_data, career_scaled_data, target_index  # Return the scaled data with the y values appended to the end of each player's data
 
 
 def find_X_and_y(ss_complete_data, ss_career_data):
@@ -154,7 +153,18 @@ def find_X_and_y(ss_complete_data, ss_career_data):
         y_complete.append(temp_y)
 
         # X and y now contain the stats and the target stat for each player
+
+    # print(f"ss_career_data[200][-2][1]: {ss_career_data[280][-2][1]}")  # Debugging line to check the second to last season's stats
     
+    '''
+    print(f"length of ss_career_data[10][-2][1]: {len(ss_career_data[10][-2][1])}")  # Debugging line to check the second to last season's stats
+    for item in ss_career_data[10][-2][1]:
+        print(f"item: {item}")
+    return'''
+
+    counter = 0
+    
+
     for player_data in ss_career_data:
 
         '''for item in player_data:
@@ -163,32 +173,66 @@ def find_X_and_y(ss_complete_data, ss_career_data):
         career_raw_stats = []
      
         # Assuming player_data is structured as [player_name, [stats]]
-        player_name = player_data[0]
+        player_name = player_data[0][0]
         player_seasons = player_data[1]
         # player_year = player_data[2]
 
-        temp_player_seasons = list(player_seasons)  # Create a copy of stats to avoid modifying the original list
 
-        '''for item in temp_player_seasons:
+        '''temp_player_seasons = list(player_seasons)  # Create a copy of stats to avoid modifying the original listå
+
+        for item in temp_player_seasons:
             print(f"item: {item}")
-        return'''
+        
+        print(f"temp_player_seasons[-1]: {temp_player_seasons[-1]}")  # Debugging line to check the last season's stats'''
 
-        temp_y = list(temp_player_seasons[-1][-1]) # Get the last season's y stats
+        # print(f"player_data[-2][1]: {player_data[-2][1]}")  # Debugging line to check the second to last season's stats
+        # player_data[-2][1] is the second to last season's stats for this player. This list that contains the stats contains 10 time splits (at least for the career data). 
 
-        if len(temp_player_seasons) < 2:  # Check if the player has at least 2 seasons of data
+
+        temp_y = list(player_data[-1][-1]) # Get the last season's y stats
+
+        if temp_y == ['2', '0', '2', '4', '-', '2', '5']:
+            print(f'wrong_player_data at index {counter}')
+            for item in player_data:
+                print(f"item: {item}")  # Debugging line to check player_data contents
+            print(f"last season")
+            for item in player_data[0]:
+                print(f"item = {item}")
+            print(f"time splits")
+            for item in player_data[0][1]:
+                print(f"\nitem = {item}")
+            
+            return
+        
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        
+
+        '''print(f"temp_y: {temp_y}")  # Debugging line to check temp_y
+
+        if len(player_data) < 2:  # Check if the player has at least 2 seasons of data
             print(f"Skipping {player_name} due to insufficient seasons.")
-            continue
+            continue'''
 
-        for i in range(-len(temp_player_seasons), -1):
-            season_stats = list(temp_player_seasons[i][1])  # Get the stats for the season
+        for i in range(-2, -1):
+            season_stats = list(player_data[i][1])  # Get the stats for the season. Contains 10 time splits (at least for the career data).
             career_raw_stats.extend(season_stats)  # Get all the stats from the player's seasons
+    
+
+        # Edit this if statement if the amount of seasons we are training for increases. For example, it should be < 20 if we are training for 2 seasons.
+        if len(career_raw_stats) < 10:   # Don't know why career_raw stats would be less than 10 sometimes, will have to figure out later. 
+            print(f"Skipping {player_name} due to insufficient stats.")
+            print(f"player_data = {player_data}")
+            return
+
+        
 
         X_career.append(career_raw_stats)  # Get the second to last season's stats
         
-        X_career.append(temp_stats)
+        # X_career.append(temp_stats)
         y_career.append(temp_y)
 
         # X and y now contain the stats and the target stat for each player
+        counter += 1
 
     return X_complete, y_complete, player_names, player_years, X_career, y_career
 
@@ -199,25 +243,30 @@ def import_stats():
     scaled_career_data = joblib.load("scaled_data_and_scalers/scaled_career_data.joblib")
     scaler_list = joblib.load("scaled_data_and_scalers/scaler_list.pkl")
 
-    scaled_seperated_complete_data, scaled_seperated_career_data = find_y(scaled_complete_data, scaled_career_data)
+
+    scaled_seperated_complete_data, scaled_seperated_career_data, target_index = find_target_player(scaled_complete_data, scaled_career_data)
 
     try:
-        scaled_seperated_complete_data, scaled_seperated_career_data = find_target_player(scaled_seperated_complete_data, scaled_seperated_career_data)
+        scaled_seperated_complete_data, scaled_seperated_career_data = select_player(scaled_seperated_complete_data, scaled_seperated_career_data)
     except Exception as e:
         print(f"Error finding target player: {e}")
         return None, None, None, None, None
     
-    print(type(scaled_seperated_complete_data))
-    print(type(scaled_seperated_career_data))
 
     # START WORK FROM HERE MAYBE
+    for item in scaled_seperated_career_data[0]:
+        print(f'item = {item}')
+    # return
 
     # Add function here that makes X and y from the scaled_seperated_complete_data, and makes another list that holds the names of the players in the same order as their stats.
     X_complete, y_complete, player_names, player_years, X_career, y_career = find_X_and_y(scaled_seperated_complete_data, scaled_seperated_career_data)
 
+    print(f"y_career[0]: {y_career[200]}")  # Debugging line to check y_career
+
     # return
 
-    return X_complete, y_complete, player_names, player_years, scaler_list, X_career, y_career
+
+    return X_complete, y_complete, player_names, player_years, scaler_list, X_career, y_career, target_index
 
 
 def process_lstm_data(X_raw, y_raw):
@@ -240,7 +289,7 @@ def process_lstm_data(X_raw, y_raw):
     X_array = np.stack(X_formatted)  # shape: (players, time_steps, features)
 
 
-    print(f"y_raw[0]: {y_raw[0]}")
+    # print(f"y_raw[0]: {y_raw[0]}")
 
     y_array = []
 
@@ -249,29 +298,49 @@ def process_lstm_data(X_raw, y_raw):
         y_row_flattened = [np.squeeze(f) for f in row]
         y_row_array = np.array(y_row_flattened)  # shape: (16,)
         y_array.append(y_row_array)
+    
+    print(f"y_array[-1]: {y_array[-1]}")  # Debugging line to check the last row of y_array
+
+    '''f_counter = 0
+    for item in y_array:
+        print(f"item = {item}")  # Debugging line to check y_array contents
+        if len(item) < 10:
+            print(f"Warning: item {f_counter} has length {len(item)}")
+            # y_array.pop(f_counter) # Removes items that are the year string. Idk why the year string would be here, this is something I have to fix.
+        f_counter += 1'''
+    
+    print(f"new length of y_array: {len(y_array)}")  # Debugging line to check the length of y_array
 
     y_array = np.stack(y_array)  # shape: (num_players, 16)
 
     return X_array, y_array
 
-def find_train_test_split(X, y, player_names, player_years):
+def find_train_test_split(X_complete, y_complete, X_career, y_career, player_names, player_years):
     # split data into train test sets
 
+    # print(f"y_career[0]: {y_career[0]}")
+
     # Use all sequences for training EXCEPT one
-    X_train, y_train = X[:-1], y[:-1]
+    X_complete_train, y_complete_train = X_complete[:-1], y_complete[:-1]
+    X_career_train, y_career_train = X_career[:-1], y_career[:-1]
 
     # Use the last sequence for testing
-    X_full_test_sequence = X[-1]  # shape: (time_steps, features)
-    y_full_test_sequence = y[-1]  # shape: (features,) or (time_steps, features)
+    X_full_complete_test_sequence = X_complete[-1]  # shape: (time_steps, features)
+    y_full_complete_test_sequence = y_complete[-1]  # shape: (features,) or (time_steps, features)
+
+    X_full_career_test_sequence = X_career[-1]  # shape: (time_steps, features)
+    y_full_career_test_sequence = y_career[-1]  # shape: (features,) or (time_steps, features)
+
     test_player_name = player_names[-1]  # Get the name of the last player
     test_player_year = player_years[-1]  # Get the year of the last player
 
+
     # We'll determine the split based on output_steps in the main function
     # For now, just return the full sequence and let test_and_evaluate_model handle the split
-    return X_train, X_full_test_sequence, y_train, y_full_test_sequence, test_player_name, test_player_year
+    return X_complete_train, X_full_complete_test_sequence, y_complete_train, y_full_complete_test_sequence, test_player_name, test_player_year, X_career_train, y_career_train, X_full_career_test_sequence, y_full_career_test_sequence
 
 
-def slice_y_to_output_steps(y_data, output_steps):
+def slice_y_to_output_steps(y_data, output_steps):   # I am not passing career y data into this function right now, because I am using the entire last year as the y. 
     sliced_y = []
     for row in y_data:
         row = np.array(row)
@@ -291,7 +360,7 @@ def compile_lstm_model(X_train, y_train, output_steps):
     model.compile(optimizer=adam, loss='mse')
     model.fit(x=X_train, y=y_train, batch_size=15, epochs=30, shuffle=True, validation_split = 0.1)'''
 
-    print(f"X_train shape: {X_train.shape}, y_train shape: {y_train.shape}")
+    # print(f"X_train shape: {X_train.shape}, y_train shape: {y_train.shape}")
     
     model = keras.models.Sequential()
     model.add(LSTM(64, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2]))) # Assuming input shape is (time_steps, features)
@@ -308,7 +377,7 @@ def compile_lstm_model(X_train, y_train, output_steps):
 
 
 
-def test_and_evaluate_model(model, X_full_test_sequence, y_full_test_sequence, test_player_name, test_player_year, scaler_list, output_steps, full_y_true_scaled):
+def test_and_evaluate_model(model, target_index, X_full_test_sequence, y_full_test_sequence, test_player_name, test_player_year, scaler_list, output_steps, full_y_true_scaled):
     # Now we handle the train/test split here based on output_steps
     seq_len = X_full_test_sequence.shape[0]
     
@@ -329,14 +398,8 @@ def test_and_evaluate_model(model, X_full_test_sequence, y_full_test_sequence, t
     
     # The model predicts 'output_steps' future time steps
     print(f"Model prediction shape: {y_pred.shape}")
-    
-    # For plotting, we'll use the first feature/scaler
-    # ***************************************************************************************************************
-    target_index = 7  # Use selected feature/scaler for plotting
-    # ***************************************************************************************************************
-    # target_index IS VERY IMPORTANT: IT DETERMINES WHICH FEATURE TO PLOT AND UNDO SCALING FOR. 
-    # target_index MUST MATCH THE VARIABLE stat_index, WHICH WAS DEFINED IN PROCESS_DATA.PY. THESE
-    # VARIABLES PICK WHICH FEATURE TO PLOT AND UNDO SCALING FOR.
+
+
 
     # Extract all predicted time steps for the first feature
     y_pred_flat = y_pred.flatten().reshape(-1, 1)  # All predictions as column vector
@@ -407,30 +470,53 @@ def test_and_evaluate_model(model, X_full_test_sequence, y_full_test_sequence, t
 
 
 def main():
-    X_complete_raw, y_complete_raw, player_names, player_years, scaler_list, X_career_raw, y_career_raw = import_stats()
+    X_complete_raw, y_complete_raw, player_names, player_years, scaler_list, X_career_raw, y_career_raw, target_index = import_stats()
 
     print(f"Number of players: {len(player_names)}")
+    print(f"Number of players in career data: {len(X_career_raw)}")
+
+    # X_career_raw, y_career_raw = np.array(X_career_raw), np.array(y_career_raw)  # Ensure these are numpy arrays for processing
+    print(f"y_career_raw[0]: {y_career_raw[0]}")  # Debugging line to check y_career_processed
 
     X_complete_processed, y_complete_processed = process_lstm_data(X_complete_raw, y_complete_raw)
     X_career_processed, y_career_processed = process_lstm_data(X_career_raw, y_career_raw)
 
-    return
 
     X_complete_shape = X_complete_processed.shape
+    X_career_shape = X_career_processed.shape
 
-    X_train, X_full_test_sequence, y_train, y_full_test_sequence, test_player_name, test_player_year = find_train_test_split(X_complete_processed, y_complete_processed, player_names, player_years)
+    X_complete_train, X_full_complete_test_sequence, y_complete_train, y_full_complete_test_sequence, test_player_name, test_player_year, X_career_train, y_career_train, X_full_career_test_sequence, y_full_career_test_sequence = find_train_test_split(X_complete_processed, y_complete_processed, X_career_processed, y_career_processed, player_names, player_years)
 
     # FLEXIBLE PARAMETER: Change this to predict any number of future time steps
     # ***************************************************************************************************************
-    output_steps = 3  # Number of future time steps to predict (e.g., 3 = predict next 3 time points)
+    complete_output_steps = 3  # Number of future time steps to predict for complete data (e.g., 3 = predict next 3 time points)
+    career_output_steps = 10  # Number of future time steps to predict for career data
     # ***************************************************************************************************************
-    
-    y_train_sliced = slice_y_to_output_steps(y_train, output_steps)
+
+    y_train_sliced = slice_y_to_output_steps(y_complete_train, complete_output_steps)
     full_y_true_scaled = y_complete_processed[-1]  # last player's full y sequence (scaled)
 
-    model = compile_lstm_model(X_train, y_train_sliced, output_steps)  # Compile and train the LSTM model
+    print(f"through full y true scaled")
 
-    test_and_evaluate_model(model, X_full_test_sequence, y_full_test_sequence, test_player_name, test_player_year, scaler_list, output_steps, full_y_true_scaled)  # Test and evaluate the model
+
+    '''counter = 0
+    for array in y_career_train:
+        counter += 1
+        for item in array:
+            if type(item) is not np.ndarray:
+                print(f"wrong array = {array}, item = {item}") 
+
+    print(f"Number of career training examples: {counter}")'''
+
+
+    # ************************************************************************************************************************************************************************
+    # EDIT HERE WHICH MODEL WE ARE TRAINING AND PREDICTING, EITHER THE COMPLETE OR CAREER MODEL
+
+    # complete_model = compile_lstm_model(X_complete_train, y_train_sliced, complete_output_steps)  # Compile and train the LSTM model
+
+    career_model = compile_lstm_model(X_career_train, y_career_train, career_output_steps)
+
+    test_and_evaluate_model(career_model, target_index, X_full_complete_test_sequence, y_full_complete_test_sequence, test_player_name, test_player_year, scaler_list, career_output_steps, full_y_true_scaled)  # Test and evaluate the model
 
     print(f"X_complete_processed shape: {X_complete_processed.shape}")
     print(f"y_complete_processed shape: {y_complete_processed.shape}")

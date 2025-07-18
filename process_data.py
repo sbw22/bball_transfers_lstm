@@ -376,8 +376,6 @@ def main():
 
     # scaled_complete_data is the list of individual complete player seasons. scaled_career_data is the list of lists that contain all seasons for an individual player.
 
-    # scaled_seperated_complete_data, scaled_seperated_career_data = processor.find_y(scaled_complete_data, scaled_career_data)
-
     # return
 
     # seperated_data is in the format:
