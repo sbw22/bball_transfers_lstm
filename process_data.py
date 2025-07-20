@@ -156,10 +156,11 @@ class DataProcessor:
         # "Flory Bidunga",
         # "KJ Adams",
         # "Hunter Dickinson",
-        # "Zeke Mayo",
+        "Zeke Mayo",
         # "Melvin Council",
         # "Bennett Stirtz",
-        "Brandon Slater",
+        # "Brandon Slater",
+        # "Hunter Dickinson",
         ]
         colors = ['darkorange', 'blue', 'green', 'red', 'purple', 'cyan', 'magenta', 'yellow']
 
@@ -367,6 +368,7 @@ def main():
 
     processor.visualize_data(yearly_data[-1], complete_players)  # Pass in the last year in data
 
+    return
     # THIS RETURN IS HERE SO I CAN JUST VISUALIZE THE DATA WHEN I RUN THIS SCRIPT WHITHOUT MAKING MAJOR CHANGES TO THE DATA. IF YOU WANT TO SCALE THE DATA, REMOVE THIS.
 
 
