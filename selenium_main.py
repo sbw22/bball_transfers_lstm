@@ -56,7 +56,7 @@ def scrape_data():
 
 
 
-    for i in range(2024, 2025, 1): # Get year range (might want to expand range to 2008 when I have mroe time to scrape data)
+    for i in range(2013, 2014, 1): # Get year range (might want to expand range to 2008 when I have mroe time to scrape data)
         if i == 2019:  # Skip the years 2019 and 2020 due to COVID-19 season
             print(f"Skipping year {i} due to COVID-19 season.")
             continue
@@ -256,13 +256,13 @@ def main():
     
     # Now we have a dictionary of players and their data, we can save it to a CSV file or process it further.
     # Save the player_dict to a CSV file
-    with open('selenium_data/biweekly/player_data_2024-25_biweekly.csv', 'w', newline='') as csvfile:
+    with open('selenium_data/biweekly/player_data_2013-14_biweekly.csv', 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile)
         csvwriter.writerow(['Player', 'Stats'])
         for player_data in player_dict:
             csvwriter.writerow([player_data, player_dict[player_data]])
     csvfile.close()
-    print("Player data saved to selenium_data/biweekly/player_data_2024-25_biweekly.csv")
+    print("Player data saved to selenium_data/biweekly/player_data_2013-14_biweekly.csv")
 
     
     return

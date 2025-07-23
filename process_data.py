@@ -33,9 +33,13 @@ class DataProcessor:
         complete_players = []
         # career_players = []   # This will hold the career stats of players 
 
-        for i in range(20, 25):
+        for i in range(13, 25):
             
             year_string = f"20{i}-{i+1}"
+
+            if year_string == "2019-20":  # Skip the years 2019 and 2020 due to COVID-19 season
+                print(f"Skipping year {year_string} due to COVID-19 season.")
+                continue
 
             file_path = f"selenium_data/biweekly/player_data_20{i}-{i+1}_biweekly.csv"
 
@@ -156,11 +160,12 @@ class DataProcessor:
         # "Flory Bidunga",
         # "KJ Adams",
         # "Hunter Dickinson",
-        "Zeke Mayo",
+        # "Zeke Mayo",
         # "Melvin Council",
         # "Bennett Stirtz",
         # "Brandon Slater",
         # "Hunter Dickinson",
+        "Frank Mason",
         ]
         colors = ['darkorange', 'blue', 'green', 'red', 'purple', 'cyan', 'magenta', 'yellow']
 
@@ -366,7 +371,7 @@ def main():
     print(f"first entry in complete_players: {complete_players[0]}")
     print(f"length of complete_players: {len(complete_players)}")'''
 
-    processor.visualize_data(yearly_data[-1], complete_players)  # Pass in the last year in data
+    processor.visualize_data(yearly_data[-9], complete_players)  # Pass in the last year in data
 
     return
     # THIS RETURN IS HERE SO I CAN JUST VISUALIZE THE DATA WHEN I RUN THIS SCRIPT WHITHOUT MAKING MAJOR CHANGES TO THE DATA. IF YOU WANT TO SCALE THE DATA, REMOVE THIS.

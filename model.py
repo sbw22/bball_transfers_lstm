@@ -18,9 +18,93 @@ import pickle
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
+import tkinter as tk
+from tkinter import ttk
+from PIL import ImageTk, Image
 
 
-def select_player(ss_complete_data, ss_career_data):
+class MyGUI:
+
+    def __init__(self, career_player_names, model, target_index, X_test_sequence, y_test_sequence, test_player_name, test_player_year, scaler_list, output_steps, full_y_true_scaled):
+        self.career_player_names = career_player_names
+        self.model = model
+        self.target_index = target_index
+        self.X_test_sequence = X_test_sequence
+        self.y_test_sequence = y_test_sequence
+        self.test_player_name = test_player_name
+        self.test_player_year = test_player_year
+        self.scaler_list = scaler_list
+        self.output_steps = output_steps
+        self.full_y_true_scaled = full_y_true_scaled
+
+        self.image_label = None  # Initialize image_label to None
+        self.root = tk.Tk()
+        self.root.geometry("1200x800")  # Set the window size
+        self.root.configure(bg='lightblue')
+        self.root.title("Basketball Player Stats Prediction")
+
+        self.ku_font = ("helvetica", 16, "bold")
+        self.root.title("Basketball Player Stats Prediction App")
+        self.label = tk.Label(self.root, text="Welcome to the Basketball Player Stats Prediction App!", font=self.ku_font, bg='lightblue', fg='crimson')
+        self.label.pack(pady=20)
+
+        tk.Label(self.root, text="Type a player:").pack(pady=(10, 0))
+
+        self.lst = career_player_names  # List of player names to populate the combo box
+        self.combo_box = ttk.Combobox(self.root, value=self.lst)
+        self.combo_box.bind('<KeyRelease>', self.search)  # Bind the KeyRelease event to the search function
+
+        self.combo_box.pack(pady=(10, 10))
+
+        self.enter_button = tk.Button(self.root, text="Enter", command=lambda: self.get_player_chart(self.combo_box.get(), self.lst, self.model, self.target_index, self.X_test_sequence, self.y_test_sequence, self.test_player_name, self.test_player_year, self.scaler_list, self.output_steps, self.full_y_true_scaled))
+        self.enter_button.pack(pady=(10, 0))
+
+        self.root.mainloop()  # Start the GUI event loop
+    
+
+    def get_player_chart(self, player_name, career_player_names, model, target_index, X_test_sequence, y_test_sequence, test_player_name, test_player_year, scaler_list, output_steps, full_y_true_scaled):
+        if player_name not in career_player_names:
+            print(f"Player {test_player_name} not found in career player names.")
+            return
+        else:
+            if self.image_label != None:  # Check if image_label is not None
+                self.image_label.destroy()  # Clear any previous image label
+            
+            print(f"got player_name: {player_name}")
+            reset_player(model, player_name)  # Reset the player data in the model
+            # test_and_evaluate_model(model, target_index, X_test_sequence, y_test_sequence, player_name, test_player_year, scaler_list, output_steps, full_y_true_scaled)
+            # Using player_name instead of test_player_name
+
+            image_path = "chart_image/player_chart.png"  # Replace with your image path
+            img = Image.open(image_path)
+            tk_img = ImageTk.PhotoImage(img)
+            self.image_label = tk.Label(self.root, image=tk_img)
+            self.image_label.image = tk_img  # Prevent image from being garbage collected
+            self.image_label.pack()
+
+            return self.image_label  # Return the image label to be used later if needed
+
+    
+    def search(self, event):
+        value = event.widget.get()
+        if value == '':
+            self.combo_box['values'] = self.lst
+        else:
+            data = []
+
+            for item in self.lst:
+                if value.lower() in item.lower():
+                    data.append(item)
+
+            self.combo_box['values'] = data
+
+    
+
+
+
+
+
+def select_player(ss_complete_data, ss_career_data, optional_name=""):
 
     usable_complete_examples = [
         "Cooper Flagg",
@@ -39,9 +123,10 @@ def select_player(ss_complete_data, ss_career_data):
         "Mitch Mascari",
         "Augustas Marciulionis",
         "Alston Mason",
+        "Devonte' Graham",
     ]
 
-    target_player = "Zeke Mayo"  # Change this to the player you want to find
+    target_player = optional_name if len(optional_name) > 0 else "Zeke Mayo"
     target_year = "2024-25"
 
     # print(f"last item in ss_career_data: {ss_career_data[-1]}")
@@ -50,7 +135,7 @@ def select_player(ss_complete_data, ss_career_data):
     for player_data in ss_complete_data:
         temp_name = player_data[0]
         temp_year = player_data[2]
-        print(f"temp_name = {temp_name}, temp_year = {temp_year}")
+        # print(f"temp_name = {temp_name}, temp_year = {temp_year}")
         if temp_name == target_player and temp_year == target_year:
             moving_player_data = ss_complete_data.pop(ss_complete_data.index(player_data))
             ss_complete_data.append(moving_player_data)
@@ -61,7 +146,7 @@ def select_player(ss_complete_data, ss_career_data):
         actual_player_data = player_data[0]
         
         temp_name_ = actual_player_data[0]
-        print(f"temp_name_: {temp_name_}")
+        # print(f"temp_name_: {temp_name_}")
 
         if temp_name_ == target_player:
             moving_player_data = ss_career_data.pop(ss_career_data.index(player_data))
@@ -101,7 +186,7 @@ def find_target_player(complete_scaled_data, career_scaled_data):
     # 16 = 3P      # Pretty good        * * * *
 
     # ***************************************************************************************************************
-    target_index = 1  # Change this to the index of the stat you want to predict
+    target_index = 5  # Change this to the index of the stat you want to predict
     # ***************************************************************************************************************
     # target_index IS VERY IMPORTANT: IT DETERMINES WHICH FEATURE TO PLOT AND UNDO SCALING FOR. 
 
@@ -252,32 +337,23 @@ def find_X_and_y(ss_complete_data, ss_career_data):
 
 
 
-def import_stats():
+def import_stats(player_name=""):
     scaled_complete_data = joblib.load("scaled_data_and_scalers/scaled_complete_data.joblib")
     scaled_career_data = joblib.load("scaled_data_and_scalers/scaled_career_data.joblib")
     scaler_list = joblib.load("scaled_data_and_scalers/scaler_list.pkl")
 
-
     scaled_seperated_complete_data, scaled_seperated_career_data, target_index = find_target_player(scaled_complete_data, scaled_career_data)
+    
 
     try:
-        scaled_seperated_complete_data, scaled_seperated_career_data = select_player(scaled_seperated_complete_data, scaled_seperated_career_data)
+        scaled_seperated_complete_data, scaled_seperated_career_data = select_player(scaled_seperated_complete_data, scaled_seperated_career_data, player_name)
     except Exception as e:
         print(f"Error finding target player: {e}")
         return None, None, None, None, None
-    
 
-    # START WORK FROM HERE MAYBE
-    '''for item in scaled_seperated_career_data[0]:
-        print(f'item = {item}')'''
-    # return
 
     # Add function here that makes X and y from the scaled_seperated_complete_data, and makes another list that holds the names of the players in the same order as their stats.
     X_complete, y_complete, complete_player_names, complete_player_years, career_player_names, career_player_years, X_career, y_career = find_X_and_y(scaled_seperated_complete_data, scaled_seperated_career_data)
-
-    print(f"y_career[0]: {y_career[200]}")  # Debugging line to check y_career
-
-    # return
 
 
     return X_complete, y_complete, complete_player_names, complete_player_years, career_player_names, career_player_years, scaler_list, X_career, y_career, target_index
@@ -313,18 +389,7 @@ def process_lstm_data(X_raw, y_raw):
         y_row_array = np.array(y_row_flattened)  # shape: (16,)
         y_array.append(y_row_array)
     
-    print(f"y_array[-1]: {y_array[-1]}")  # Debugging line to check the last row of y_array
-
-    '''f_counter = 0
-    for item in y_array:
-        print(f"item = {item}")  # Debugging line to check y_array contents
-        if len(item) < 10:
-            print(f"Warning: item {f_counter} has length {len(item)}")
-            # y_array.pop(f_counter) # Removes items that are the year string. Idk why the year string would be here, this is something I have to fix.
-        f_counter += 1'''
     
-    print(f"new length of y_array: {len(y_array)}")  # Debugging line to check the length of y_array
-
     y_array = np.stack(y_array)  # shape: (num_players, 16)
 
     return X_array, y_array
@@ -385,7 +450,7 @@ def compile_lstm_model(X_train, y_train, output_steps):
     # model.add(keras.layers.Reshape((output_steps, y_train.shape[1])))  # Reshape to (steps, features)
 
     model.compile(optimizer='adam', loss=Huber(delta=1.0))    # Huber(delta=1.0))
-    model.fit(X_train, y_train, epochs=300, batch_size=32, validation_split=0.25, shuffle=True)
+    model.fit(X_train, y_train, epochs=200, batch_size=128, validation_split=0.20, shuffle=True)
     return model
 
 
@@ -494,6 +559,7 @@ def compile_lstm_model(X_train, y_train, output_steps):
     plt.show()'''
 
 
+
 def test_and_evaluate_model(model, target_index, X_test_sequence, y_test_sequence, test_player_name, test_player_year, scaler_list, output_steps, full_y_true_scaled):
     
     seq_len = X_test_sequence.shape[0]
@@ -522,8 +588,13 @@ def test_and_evaluate_model(model, target_index, X_test_sequence, y_test_sequenc
         chosen_label = label_list[target_index]
         print(f"\n📈 Predicting last {output_steps} value(s) for: {test_player_name} ({test_player_year})")
         for i in range(len(y_pred_unscaled)):
-            print(f"Step {test_start + i + 1}: Predicted = {y_pred_unscaled[i, 0]:.4f}, True = {y_test_true_unscaled[i, 0]:.4f}")
-
+            print(f"Time Step {i + 1}: Predicted = {y_pred_unscaled[i, 0]:.4f}, True = {y_test_true_unscaled[i, 0]:.4f}, Difference = {abs(y_pred_unscaled[i, 0] - y_test_true_unscaled[i, 0]):.4f}")
+        # Calculate and print error metrics
+        errors = np.abs(y_pred_unscaled.flatten() - y_test_true_unscaled.flatten())
+        print(f"\nError Analysis:")
+        print(f"Mean Absolute Error: {np.mean(errors):.4f}")
+        print(f"Max Error: {np.max(errors):.4f}")
+        print(f"Min Error: {np.min(errors):.4f}")
         # 5. Plot the intra-sequence prediction
         plt.figure(figsize=(12, 6))
         plt.plot(full_y_true_unscaled, label="True Full Sequence", color='gold', marker='o')
@@ -535,7 +606,10 @@ def test_and_evaluate_model(model, target_index, X_test_sequence, y_test_sequenc
         plt.ylabel(f"Value for {chosen_label}")
         plt.legend()
         plt.grid(True)
-        plt.show()
+        # plt.show()
+
+        plt.savefig("chart_image/player_chart.png", bbox_inches='tight')
+        plt.close()  # Close the plot to free memory
 
     else:
         # --- SCENARIO 2: CAREER MODEL (Predicting a full sequence from another) ---
@@ -557,8 +631,13 @@ def test_and_evaluate_model(model, target_index, X_test_sequence, y_test_sequenc
         chosen_label = label_list[target_index]
         print(f"\n📈 Predicting season {test_player_year} for player: {test_player_name}")
         for i in range(len(y_pred_unscaled)):
-            print(f"Time Step {i + 1}: Predicted = {y_pred_unscaled[i, 0]:.4f}, True = {y_test_true_unscaled[i, 0]:.4f}")
-
+            print(f"Time Step {i + 1}: Predicted = {y_pred_unscaled[i, 0]:.4f}, True = {y_test_true_unscaled[i, 0]:.4f}, Difference = {abs(y_pred_unscaled[i, 0] - y_test_true_unscaled[i, 0]):.4f}")
+        # Calculate and print error metrics
+        errors = np.abs(y_pred_unscaled.flatten() - y_test_true_unscaled.flatten())
+        print(f"\nError Analysis:")
+        print(f"Mean Absolute Error: {np.mean(errors):.4f}")
+        print(f"Max Error: {np.max(errors):.4f}")
+        print(f"Min Error: {np.min(errors):.4f}")
         # 5. Plot the full sequence-to-sequence prediction
         plt.figure(figsize=(12, 6))
         plt.plot(y_test_true_unscaled, label="True Values", color='gold', marker='o', linewidth=2)
@@ -568,18 +647,21 @@ def test_and_evaluate_model(model, target_index, X_test_sequence, y_test_sequenc
         plt.ylabel(f"Value for {chosen_label}")
         plt.legend()
         plt.grid(True)
-        plt.show()
+        # plt.show()
+
+        plt.savefig("chart_image/player_chart.png", bbox_inches='tight')
+        plt.close()  # Close the plot to free memory
+    
+    
+
+def make_ui(career_player_names, career_model, target_index, X_full_career_test_sequence, y_full_career_test_sequence, career_test_player_name, career_test_player_year, scaler_list, career_output_steps, full_y_career_true_scaled):
+
+    my_gui = MyGUI(career_player_names, career_model, target_index, X_full_career_test_sequence, y_full_career_test_sequence, career_test_player_name, career_test_player_year, scaler_list, career_output_steps, full_y_career_true_scaled)
 
 
+def reset_player(model, player_name):
 
-def main():
-    X_complete_raw, y_complete_raw, complete_player_names, complete_player_years, career_player_names, career_player_years, scaler_list, X_career_raw, y_career_raw, target_index = import_stats()
-
-    print(f"Number of players: {len(complete_player_names)}")
-    print(f"Number of players in career data: {len(X_career_raw)}")
-
-    # X_career_raw, y_career_raw = np.array(X_career_raw), np.array(y_career_raw)  # Ensure these are numpy arrays for processing
-    print(f"y_career_raw[0]: {y_career_raw[0]}")  # Debugging line to check y_career_processed
+    X_complete_raw, y_complete_raw, complete_player_names, complete_player_years, career_player_names, career_player_years, scaler_list, X_career_raw, y_career_raw, target_index = import_stats(player_name)
 
     X_complete_processed, y_complete_processed = process_lstm_data(X_complete_raw, y_complete_raw)
     X_career_processed, y_career_processed = process_lstm_data(X_career_raw, y_career_raw)
@@ -599,24 +681,34 @@ def main():
     y_train_sliced = slice_y_to_output_steps(y_complete_train, complete_output_steps)
     full_y_complete_true_scaled = y_complete_processed[-1]  # last player's full y sequence (scaled)
     full_y_career_true_scaled = y_career_processed[-1]  # last player's full career y sequence (scaled)
-    print(f"")
 
-    print(f"through full y true scaled")
-
-
-    '''counter = 0
-    for array in y_career_train:
-        counter += 1
-        for item in array:
-            if type(item) is not np.ndarray:
-                print(f"wrong array = {array}, item = {item}") 
-
-    print(f"Number of career training examples: {counter}")'''
-
-    print(f"X_career_train shape: {X_career_train.shape}, y_career_train shape: {y_career_train.shape}, X_full_career_test_sequence shape: {X_full_career_test_sequence.shape}, y_full_career_test_sequence shape: {y_full_career_test_sequence.shape}")
+    test_and_evaluate_model(model, target_index, X_full_career_test_sequence, y_full_career_test_sequence, career_test_player_name, career_test_player_year, scaler_list, career_output_steps, full_y_career_true_scaled)
 
 
-    print(f"test_player_name: {career_test_player_name}")
+
+def main():
+
+    X_complete_raw, y_complete_raw, complete_player_names, complete_player_years, career_player_names, career_player_years, scaler_list, X_career_raw, y_career_raw, target_index = import_stats()
+
+    X_complete_processed, y_complete_processed = process_lstm_data(X_complete_raw, y_complete_raw)
+    X_career_processed, y_career_processed = process_lstm_data(X_career_raw, y_career_raw)
+
+
+    X_complete_shape = X_complete_processed.shape
+    X_career_shape = X_career_processed.shape
+
+    X_complete_train, X_full_complete_test_sequence, y_complete_train, y_full_complete_test_sequence, complete_test_player_name, complete_test_player_year, career_test_player_name, career_test_player_year, X_career_train, y_career_train, X_full_career_test_sequence, y_full_career_test_sequence = find_train_test_split(X_complete_processed, y_complete_processed, X_career_processed, y_career_processed, complete_player_names, complete_player_years, career_player_names, career_player_years)
+
+    # FLEXIBLE PARAMETER: Change this to predict any number of future time steps
+    # ***************************************************************************************************************
+    complete_output_steps = 3  # Number of future time steps to predict for complete data (e.g., 3 = predict next 3 time points)
+    career_output_steps = 10  # Number of future time steps to predict for career data
+    # ***************************************************************************************************************
+
+    y_train_sliced = slice_y_to_output_steps(y_complete_train, complete_output_steps)
+    full_y_complete_true_scaled = y_complete_processed[-1]  # last player's full y sequence (scaled)
+    full_y_career_true_scaled = y_career_processed[-1]  # last player's full career y sequence (scaled)
+
     # return
     # ************************************************************************************************************************************************************************
     # EDIT HERE WHICH MODEL WE ARE TRAINING AND PREDICTING, EITHER THE COMPLETE OR CAREER MODEL
@@ -630,7 +722,8 @@ def main():
     # Tests complete model
     # test_and_evaluate_model(complete_model, target_index, X_full_complete_test_sequence, y_full_complete_test_sequence, complete_test_player_name, complete_test_player_year, scaler_list, complete_output_steps, full_y_complete_true_scaled)  # Test and evaluate the model
     # Tests career model
-    test_and_evaluate_model(career_model, target_index, X_full_career_test_sequence, y_full_career_test_sequence, career_test_player_name, career_test_player_year, scaler_list, career_output_steps, full_y_career_true_scaled)  # Test and evaluate the model
+    make_ui(career_player_names, career_model, target_index, X_full_career_test_sequence, y_full_career_test_sequence, career_test_player_name, career_test_player_year, scaler_list, career_output_steps, full_y_career_true_scaled)
+    # test_and_evaluate_model(career_model, target_index, X_full_career_test_sequence, y_full_career_test_sequence, career_test_player_name, career_test_player_year, scaler_list, career_output_steps, full_y_career_true_scaled)  # Test and evaluate the model
 
     # ************************************************************************************************************************************************************************
     
